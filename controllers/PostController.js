@@ -11,71 +11,59 @@ const db = require('../config/db');
 
 const createPost = async (req, res) => {
     const { title, body } = req.body;
-    db.query("INSERT INTO posts (title, body) VALUES (?, ?)", [title, body], (err, result) => {
-        if (err) return res.status(500).json({ error: err.message });
+    try {
+        const [result] = await db.query("INSERT INTO posts (title, body) VALUES (?, ?)", [title, body]);
         res.json({ id: result.insertId, title, body });
-    });
+    } catch (err) {
+        res.status(500).json({ error: err.message });
+    }
 };
 
 const getAllPosts = async (req, res) => {
-    db.query("SELECT * FROM posts", (err, results) => {
-        if (err) return res.status(500).json({ error: err.message });
+    try {
+        const [results] = await db.query("SELECT * FROM posts");
         res.json(results);
-    });
+    } catch (err) {
+        res.status(500).json({ error: err.message });
+    }
 };
 
 const deletePost = async (req, res) => {
-
-    db.query("DELETE FROM posts WHERE id = ?", [req.params.id], (err, result) => {
-        if (err) return res.status(500).json({ error: err.message });
+    try {
+        const [result] = await db.query("DELETE FROM posts WHERE id = ?", [req.params.id]);
         if (result.affectedRows === 0) return res.status(404).json({ message: "Item not found" });
         res.json({ message: "Item deleted successfully" });
-    });
+    } catch (err) {
+        res.status(500).json({ error: err.message });
+    }
 };
 
 const syncPosts = async (req, res) => {
     const postsToSync = req.body.posts;
 
-    postsToSync.forEach(post => {
-        const { id, syncStatus, ...postData } = post;
+    try {
+        for (const post of postsToSync) {
+            const { id, syncStatus, ...postData } = post;
 
-        if (syncStatus === 'deleted') {
-            db.query('DELETE FROM posts WHERE id = ?', [id], (err, result) => {
-                if (err) {
-                    console.error('Error deleting post:', err);
-                }
-            });
-        } else {
+            if (syncStatus === 'deleted') {
+                await db.query('DELETE FROM posts WHERE id = ?', [id]);
+            } else {
+                const [existing] = await db.query('SELECT * FROM posts WHERE id = ?', [id]);
 
-            db.query('SELECT * FROM posts WHERE id = ?', [id], (err, results) => {
-                if (err) {
-                    console.error('Error checking post:', err);
-                }
-
-                if (results.length > 0) {
-                    db.query('UPDATE posts SET ? WHERE id = ?', [postData, id], (err, result) => {
-                        if (err) {
-                            console.error('Error updating post:', err);
-                        }
-                    });
+                if (existing.length > 0) {
+                    await db.query('UPDATE posts SET ? WHERE id = ?', [postData, id]);
                 } else {
-                    db.query('INSERT INTO posts SET ?', postData, (err, result) => {
-                        if (err) {
-                            console.error('Error inserting post:', err);
-                        }
-                    });
+                    await db.query('INSERT INTO posts SET ?', postData);
                 }
-            });
+            }
         }
-    });
 
-    db.query("SELECT * FROM posts", (err, results) => {
-        if (err) return res.status(500).json({ error: err.message });
-        res.status(200).send({ message: 'Sync complete', posts: postsToSync });
-    });
-
-
-}
+        const [results] = await db.query("SELECT * FROM posts");
+        res.status(200).send({ message: 'Sync complete', posts: results });
+    } catch (err) {
+        res.status(500).json({ error: err.message });
+    }
+};
 
 module.exports = {
     createPost,
