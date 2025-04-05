@@ -1,17 +1,13 @@
-const mysql = require('mysql2')
-const db = mysql.createConnection({
-    host: process.env.DB_HOST,
-    user: process.env.DB_USER,
-    password: process.env.DB_PASSWORD,
-    database: process.env.DB_NAME
-});
-db.connect((err) => {
-    if (err) {
-        console.error('Error connecting to the database:', err);
-        return;
+const db = require('../config/db');
+
+(async () => {
+    try {
+        await db.query('SELECT 1');
+        console.log('✅ MySQL connection established successfully.');
+    } catch (err) {
+        console.error('❌ Error connecting to MySQL:', err.message);
     }
-    console.log('Connected to the MySQL database.');
-});
+})();
 
 const createPost = async (req, res) => {
     const { title, body } = req.body;
@@ -78,7 +74,7 @@ const syncPosts = async (req, res) => {
         res.status(200).send({ message: 'Sync complete', posts: postsToSync });
     });
 
-    
+
 }
 
 module.exports = {
