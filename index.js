@@ -2,6 +2,8 @@ const express = require('express');
 const mysql = require('mysql2');
 const bodyParser = require('body-parser');
 const cors = require('cors');
+const dotenv= require('dotenv');
+dotenv.config();
 
 const app = express();
 app.use(cors());
@@ -34,5 +36,5 @@ app.get('/', (req, res) => {
 app.use('/posts', require('./routes/PostRoutes'));
 
 app.listen(port, () => {
-    console.log(`Server is running on http://localhost:${port}`);
+    console.log(`Server is running on ${port}`);
 });

@@ -1,9 +1,9 @@
 const mysql = require('mysql2')
 const db = mysql.createConnection({
-    host: 'localhost',
-    user: 'root',
-    password: '',
-    database: 'pwa'
+    host: process.env.DB_HOST,
+    user: process.env.DB_USER,
+    password: process.env.DB_PASSWORD,
+    database: process.env.DB_NAME
 });
 
 const createPost = async (req, res) => {
@@ -22,7 +22,7 @@ const getAllPosts = async (req, res) => {
 };
 
 const deletePost = async (req, res) => {
-    
+
     db.query("DELETE FROM posts WHERE id = ?", [req.params.id], (err, result) => {
         if (err) return res.status(500).json({ error: err.message });
         if (result.affectedRows === 0) return res.status(404).json({ message: "Item not found" });
@@ -30,43 +30,48 @@ const deletePost = async (req, res) => {
     });
 };
 
-const syncPosts=async(req,res)=>{
-    const postsToSync=req.body;
+const syncPosts = async (req, res) => {
+    const postsToSync = req.body.posts;
 
     postsToSync.forEach(post => {
         const { id, syncStatus, ...postData } = post;
 
         if (syncStatus === 'deleted') {
-          db.query('DELETE FROM posts WHERE id = ?', [id], (err, result) => {
-            if (err) {
-              console.error('Error deleting post:', err);
-            }
-          });
+            db.query('DELETE FROM posts WHERE id = ?', [id], (err, result) => {
+                if (err) {
+                    console.error('Error deleting post:', err);
+                }
+            });
         } else {
 
-          db.query('SELECT * FROM posts WHERE id = ?', [id], (err, results) => {
-            if (err) {
-              console.error('Error checking post:', err);
-            }
-    
-            if (results.length > 0) {
-              db.query('UPDATE posts SET ? WHERE id = ?', [postData,id], (err, result) => {
+            db.query('SELECT * FROM posts WHERE id = ?', [id], (err, results) => {
                 if (err) {
-                  console.error('Error updating post:', err);
+                    console.error('Error checking post:', err);
                 }
-              });
-            } else {
-              db.query('INSERT INTO posts SET ?', postData, (err, result) => {
-                if (err) {
-                  console.error('Error inserting post:', err);
+
+                if (results.length > 0) {
+                    db.query('UPDATE posts SET ? WHERE id = ?', [postData, id], (err, result) => {
+                        if (err) {
+                            console.error('Error updating post:', err);
+                        }
+                    });
+                } else {
+                    db.query('INSERT INTO posts SET ?', postData, (err, result) => {
+                        if (err) {
+                            console.error('Error inserting post:', err);
+                        }
+                    });
                 }
-              });
-            }
-          });
+            });
         }
-      });
+    });
+
+    db.query("SELECT * FROM posts", (err, results) => {
+        if (err) return res.status(500).json({ error: err.message });
+        res.status(200).send({ message: 'Sync complete', posts: postsToSync });
+    });
+
     
-      res.status(200).send({ message: 'Sync complete' });
 }
 
 module.exports = {
