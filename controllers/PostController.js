@@ -1,13 +1,13 @@
 const db = require('../config/db');
 
-(async () => {
-    try {
-        await db.query('SELECT 1');
-        console.log('✅ MySQL connection established successfully.');
-    } catch (err) {
-        console.error('❌ Error connecting to MySQL:', err.message);
-    }
-})();
+// (async () => {
+//     try {
+//         await db.query('SELECT 1');
+//         console.log('✅ MySQL connection established successfully.');
+//     } catch (err) {
+//         console.error('❌ Error connecting to MySQL:', err.message);
+//     }
+// })();
 
 const createPost = async (req, res) => {
     const { title, body } = req.body;

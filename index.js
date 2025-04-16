@@ -2,6 +2,9 @@ const express = require('express');
 const bodyParser = require('body-parser');
 const cors = require('cors');
 const dotenv= require('dotenv');
+const postRoutes    = require('./routes/PostRoutes');
+const authRoutes = require('./routes/UserRoutes');
+
 dotenv.config();
 
 const app = express();
@@ -16,7 +19,8 @@ app.get('/', (req, res) => {
     res.send('Express server is running!');
 });
 
-app.use('/posts', require('./routes/PostRoutes'));
+app.use('/api/v1/posts', postRoutes);
+app.use('/api/v1/auth', authRoutes);
 
 app.listen(port, () => {
     console.log(`Server is running on ${port}`);
