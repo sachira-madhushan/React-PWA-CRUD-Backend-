@@ -11,12 +11,15 @@ const login = (req, res) => {
 
         const user = results[0];
 
+        const userWithoutPassword = { ...user };
+        delete userWithoutPassword.password;
+
         bcrypt.compare(password, user.password, (err, isMatch) => {
             if (err) return res.status(500).json({ error: err.message });
             if (!isMatch) return res.status(401).json({ message: 'Invalid credentials' });
 
             const token = jwt.sign({ id: user.id }, process.env.JWT_SECRET);
-            res.json({ token });
+            res.json({ user:userWithoutPassword,token:token });
         });
     });
 };
