@@ -20,4 +20,10 @@ app.use('/posts', require('./routes/PostRoutes'));
 
 app.listen(port, () => {
     console.log(`Server is running on ${port}`);
-});
+})
+
+
+
+
+
+

@@ -40,7 +40,6 @@ const deletePost = async (req, res) => {
 
 const syncPosts = async (req, res) => {
     const postsToSync = req.body.posts;
-
     try {
         for (const post of postsToSync) {
             const { id, syncStatus, ...postData } = post;
@@ -57,7 +56,6 @@ const syncPosts = async (req, res) => {
                 }
             }
         }
-
         const [results] = await db.query("SELECT * FROM posts");
         res.status(200).send({ message: 'Sync complete', posts: results });
     } catch (err) {
