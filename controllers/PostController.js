@@ -1,66 +1,69 @@
 const db = require('../config/db');
 
-// (async () => {
-//     try {
-//         await db.query('SELECT 1');
-//         console.log('✅ MySQL connection established successfully.');
-//     } catch (err) {
-//         console.error('❌ Error connecting to MySQL:', err.message);
-//     }
-// })();
-
-const createPost = async (req, res) => {
+const createPost = (req, res) => {
     const { title, body } = req.body;
-    try {
-        const [result] = await db.query("INSERT INTO posts (title, body) VALUES (?, ?)", [title, body]);
+
+    db.query("INSERT INTO posts (title, body) VALUES (?, ?)", [title, body], (err, result) => {
+        if (err) return res.status(500).json({ error: err.message });
         res.json({ id: result.insertId, title, body });
-    } catch (err) {
-        res.status(500).json({ error: err.message });
-    }
+    });
 };
 
-const getAllPosts = async (req, res) => {
-    try {
-        const [results] = await db.query("SELECT * FROM posts");
+const getAllPosts = (req, res) => {
+    db.query("SELECT * FROM posts", (err, results) => {
+        if (err) return res.status(500).json({ error: err.message });
         res.json(results);
-    } catch (err) {
-        res.status(500).json({ error: err.message });
-    }
+    });
 };
 
-const deletePost = async (req, res) => {
-    try {
-        const [result] = await db.query("DELETE FROM posts WHERE id = ?", [req.params.id]);
+const deletePost = (req, res) => {
+    db.query("DELETE FROM posts WHERE id = ?", [req.params.id], (err, result) => {
+        if (err) return res.status(500).json({ error: err.message });
         if (result.affectedRows === 0) return res.status(404).json({ message: "Item not found" });
         res.json({ message: "Item deleted successfully" });
-    } catch (err) {
-        res.status(500).json({ error: err.message });
-    }
+    });
 };
 
-const syncPosts = async (req, res) => {
+const syncPosts = (req, res) => {
     const postsToSync = req.body.posts;
-    try {
-        for (const post of postsToSync) {
-            const { id, syncStatus, ...postData } = post;
 
-            if (syncStatus === 'deleted') {
-                await db.query('DELETE FROM posts WHERE id = ?', [id]);
-            } else {
-                const [existing] = await db.query('SELECT * FROM posts WHERE id = ?', [id]);
-
-                if (existing.length > 0) {
-                    await db.query('UPDATE posts SET ? WHERE id = ?', [postData, id]);
-                } else {
-                    await db.query('INSERT INTO posts SET ?', postData);
-                }
-            }
+    const processPost = (index) => {
+        if (index >= postsToSync.length) {
+            db.query("SELECT * FROM posts", (err, results) => {
+                if (err) return res.status(500).json({ error: err.message });
+                res.status(200).send({ message: 'Sync complete', posts: results });
+            });
+            return;
         }
-        const [results] = await db.query("SELECT * FROM posts");
-        res.status(200).send({ message: 'Sync complete', posts: results });
-    } catch (err) {
-        res.status(500).json({ error: err.message });
-    }
+
+        const post = postsToSync[index];
+        const { id, syncStatus, ...postData } = post;
+
+        if (syncStatus === 'deleted') {
+            db.query("DELETE FROM posts WHERE id = ?", [id], (err) => {
+                if (err) return res.status(500).json({ error: err.message });
+                processPost(index + 1);
+            });
+        } else {
+            db.query("SELECT * FROM posts WHERE id = ?", [id], (err, results) => {
+                if (err) return res.status(500).json({ error: err.message });
+
+                if (results.length > 0) {
+                    db.query("UPDATE posts SET ? WHERE id = ?", [postData, id], (err) => {
+                        if (err) return res.status(500).json({ error: err.message });
+                        processPost(index + 1);
+                    });
+                } else {
+                    db.query("INSERT INTO posts SET ?", postData, (err) => {
+                        if (err) return res.status(500).json({ error: err.message });
+                        processPost(index + 1);
+                    });
+                }
+            });
+        }
+    };
+
+    processPost(0);
 };
 
 module.exports = {
