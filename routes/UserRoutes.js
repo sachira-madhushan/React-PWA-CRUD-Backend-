@@ -4,6 +4,7 @@ const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 const { login, register, profile } = require('../controllers/UserController');
 
+
 require('dotenv').config();
 
 router.post('/register',register);
