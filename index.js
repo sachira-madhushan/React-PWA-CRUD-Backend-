@@ -5,6 +5,7 @@ const dotenv= require('dotenv');
 const postRoutes    = require('./routes/PostRoutes');
 const authRoutes = require('./routes/UserRoutes');
 const adminRoutes = require('./routes/AdminRoutes');
+const subscriptionRoutes = require('./routes/SubscriptionRoutes');
 
 dotenv.config();
 
@@ -23,6 +24,7 @@ app.get('/', (req, res) => {
 app.use('/api/v1/posts', postRoutes);
 app.use('/api/v1/auth', authRoutes);
 app.use('/api/v1/admin', adminRoutes);
+app.use('/api/v1/subscription',subscriptionRoutes);
 
 app.listen(port, () => {
     console.log(`Server is running on ${port}`);
