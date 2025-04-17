@@ -21,13 +21,18 @@ const createSubscription = (req, res) => {
         const formattedStart = startDate.format('YYYY-MM-DD HH:mm:ss');
         const formattedEnd = endDate.format('YYYY-MM-DD HH:mm:ss');
 
-        db.query("INSERT INTO subscriptions (user_id, package_id, start_date, end_date,remaining_minutes) VALUES (?, ?, ?,?,?)", [userId, packageId, formattedStart, formattedEnd, diffInMinutes], (err, result) => {
-            if (err) return res.status(500).json({ error: err.message });
-            db.query("UPDATE users SET status=1 WHERE id=?",[userId],(err,result)=>{
-                res.json({ "message": "Package activated" });
-            })
-            
-        });
+        db.query("UPDATE subscriptions SET status= 0,remaining_minutes=0 WHERE user_id =? AND status=1",[userId],(err,result1)=>{
+           
+            db.query("INSERT INTO subscriptions (user_id, package_id, start_date, end_date,remaining_minutes) VALUES (?, ?, ?,?,?)", [userId, packageId, formattedStart, formattedEnd, diffInMinutes], (err, result) => {
+                if (err) return res.status(500).json({ error: err.message });
+                db.query("UPDATE users SET status=1 WHERE id=?",[userId],(err,result)=>{
+                    res.json({ "message": "Package activated" });
+                })
+                
+            });
+        })
+
+        
     });
 
 

@@ -18,8 +18,11 @@ const login = (req, res) => {
             if (err) return res.status(500).json({ error: err.message });
             if (!isMatch) return res.status(401).json({ message: 'Invalid credentials' });
 
-            const token = jwt.sign({ id: user.id }, process.env.JWT_SECRET);
-            res.json({ user:userWithoutPassword,token:token });
+            db.query("SELECT * FROM subscriptions WHERE user_id =? AND status=1", [user.id], (err, results2) => {
+                const token = jwt.sign({ id: user.id }, process.env.JWT_SECRET);
+                res.json({ user: userWithoutPassword, token: token,expire_date:results2.end_date });
+            })
+
         });
     });
 };
