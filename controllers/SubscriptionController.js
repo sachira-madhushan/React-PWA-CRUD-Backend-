@@ -10,7 +10,7 @@ const createSubscription = (req, res) => {
 
         const startDate = moment.tz("Asia/Colombo");
 
-        
+
         const endDate = startDate.clone().add(results[0].days, 'day');
 
 
@@ -20,7 +20,7 @@ const createSubscription = (req, res) => {
         const diffInMinutes = endDate.diff(now, 'minutes');
         const formattedStart = startDate.format('YYYY-MM-DD HH:mm:ss');
         const formattedEnd = endDate.format('YYYY-MM-DD HH:mm:ss');
-        
+
         db.query("INSERT INTO subscriptions (user_id, package_id, start_date, end_date,remaining_minutes) VALUES (?, ?, ?,?,?)", [userId, packageId, formattedStart, formattedEnd, diffInMinutes], (err, result) => {
             if (err) return res.status(500).json({ error: err.message });
             res.json({ "message": "Package activated" });
@@ -30,6 +30,26 @@ const createSubscription = (req, res) => {
 
 };
 
+const getAllSubscriptions = (req, res) => {
+    const sql = `
+    SELECT 
+      subscriptions.*, 
+      users.name AS user_name, 
+      users.email AS user_email, 
+      packages.name AS package_name
+    FROM subscriptions
+    JOIN users ON subscriptions.user_id = users.id
+    JOIN packages ON subscriptions.package_id = packages.id
+  `;
+
+    db.query(sql, (err, results) => {
+        if (err) return res.status(500).json({ error: err.message });
+        res.json(results);
+    });
+    
+}
+
 module.exports = {
-    createSubscription
+    createSubscription,
+    getAllSubscriptions
 }
