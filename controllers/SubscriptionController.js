@@ -23,7 +23,10 @@ const createSubscription = (req, res) => {
 
         db.query("INSERT INTO subscriptions (user_id, package_id, start_date, end_date,remaining_minutes) VALUES (?, ?, ?,?,?)", [userId, packageId, formattedStart, formattedEnd, diffInMinutes], (err, result) => {
             if (err) return res.status(500).json({ error: err.message });
-            res.json({ "message": "Package activated" });
+            db.query("UPDATE users SET status=1 WHERE id=?",[userId],(err,result)=>{
+                res.json({ "message": "Package activated" });
+            })
+            
         });
     });
 
