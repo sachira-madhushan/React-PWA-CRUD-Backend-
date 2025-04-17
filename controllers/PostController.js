@@ -1,5 +1,6 @@
 const db = require('../config/db');
-
+const jwt = require('jsonwebtoken');
+const bcrypt = require('bcryptjs');
 const createPost = (req, res) => {
     const { title, body } = req.body;
 
@@ -28,6 +29,22 @@ const deletePost = (req, res) => {
 
 const syncPosts = (req, res) => {
     const postsToSync = req.body.posts;
+    const token = req.headers.authorization?.split(' ')[1];
+
+    if (!token) return res.status(401).json({ message: 'Unauthorized' });
+
+    jwt.verify(token, process.env.JWT_SECRET, (err, decoded) => {
+        if (err) return res.status(401).json({ message: 'Invalid token' });
+
+        const userId = decoded.id;
+
+        db.query('SELECT id, name, email,status FROM users WHERE id = ?', [userId], (err, results) => {
+            if (err) return res.status(500).json({ error: err.message });
+            if (results.length === 0) return res.status(404).json({ message: 'User not found' });
+            if(!results[0].status) return res.status(403).json({ message: 'User is inactive' });
+            processPost(0);
+        });
+    });
 
     const processPost = (index) => {
         if (index >= postsToSync.length) {
@@ -65,7 +82,7 @@ const syncPosts = (req, res) => {
         }
     };
 
-    processPost(0);
+    
 };
 
 module.exports = {
