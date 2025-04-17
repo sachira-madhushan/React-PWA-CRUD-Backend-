@@ -13,7 +13,15 @@ const createPost = (req, res) => {
 const getAllPosts = (req, res) => {
     db.query("SELECT * FROM posts WHERE user_id = ?", [req.user.id], (err, results) => {
         if (err) return res.status(500).json({ error: err.message });
-        res.json(results);
+        db.query("SELECT status FROM users WHERE user_id=?",[userId],(err,result2)=>{
+            if (result2[0].status == 0) {
+                res.status(500).json({ error: err.message });
+            } else {
+    
+                res.json(results);
+            }
+        })
+        
     });
 };
 
@@ -41,7 +49,7 @@ const syncPosts = (req, res) => {
         db.query('SELECT id, name, email,status FROM users WHERE id = ?', [userId], (err, results) => {
             if (err) return res.status(500).json({ error: err.message });
             if (results.length === 0) return res.status(404).json({ message: 'User not found' });
-            if(!results[0].status) return res.status(403).json({ message: 'User is inactive' });
+            if (!results[0].status) return res.status(403).json({ message: 'User is inactive' });
             processPost(0);
         });
     });
@@ -82,7 +90,7 @@ const syncPosts = (req, res) => {
         }
     };
 
-    
+
 };
 
 module.exports = {

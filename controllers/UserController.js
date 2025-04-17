@@ -1,7 +1,7 @@
 const db = require('../config/db');
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
-
+const moment=require('moment-timezone')
 const login = (req, res) => {
     const { email, password } = req.body;
 
@@ -17,12 +17,17 @@ const login = (req, res) => {
         bcrypt.compare(password, user.password, (err, isMatch) => {
             if (err) return res.status(500).json({ error: err.message });
             if (!isMatch) return res.status(401).json({ message: 'Invalid credentials' });
-
+            const token = jwt.sign({ id: user.id }, process.env.JWT_SECRET);
             db.query("SELECT * FROM subscriptions WHERE user_id =? AND status=1", [user.id], (err, results2) => {
-                const token = jwt.sign({ id: user.id }, process.env.JWT_SECRET);
-                res.json({ user: userWithoutPassword, token: token,expire_date:results2.end_date });
+                
+                if(results2.length>0){
+                    res.json({ user: userWithoutPassword, token: token,expire_date:moment(results2[0].end_date).tz("Asia/Colombo").format("YYYY-MM-DD HH:mm:ss") });
+                }else{
+                    res.json({ user: userWithoutPassword});
+                }
             })
-
+            
+            
         });
     });
 };
