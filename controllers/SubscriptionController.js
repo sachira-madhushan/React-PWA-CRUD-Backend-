@@ -44,9 +44,17 @@ const getAllSubscriptions = (req, res) => {
 
     db.query(sql, (err, results) => {
         if (err) return res.status(500).json({ error: err.message });
-        res.json(results);
+        
+        const formatted = results.map(item => ({
+            ...item,
+            start_date: moment(item.start_date).tz("Asia/Colombo").format("YYYY-MM-DD HH:mm:ss"),
+            end_date: moment(item.end_date).tz("Asia/Colombo").format("YYYY-MM-DD HH:mm:ss")
+        }));
+
+        res.json(formatted);
+
     });
-    
+
 }
 
 module.exports = {
