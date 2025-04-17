@@ -44,7 +44,7 @@ const getAllSubscriptions = (req, res) => {
 
     db.query(sql, (err, results) => {
         if (err) return res.status(500).json({ error: err.message });
-        
+
         const formatted = results.map(item => ({
             ...item,
             start_date: moment(item.start_date).tz("Asia/Colombo").format("YYYY-MM-DD HH:mm:ss"),
@@ -57,7 +57,15 @@ const getAllSubscriptions = (req, res) => {
 
 }
 
+const getAllPackages=(req,res)=>{
+    db.query("SELECT * FROM packages", (err, results) => {
+        if (err) return res.status(500).json({ error: err.message });
+        res.json(results);
+    });
+}
+
 module.exports = {
     createSubscription,
-    getAllSubscriptions
+    getAllSubscriptions,
+    getAllPackages
 }
