@@ -7,6 +7,7 @@ const postRoutes = require('./routes/PostRoutes');
 const authRoutes = require('./routes/UserRoutes');
 const adminRoutes = require('./routes/AdminRoutes');
 const subscriptionRoutes = require('./routes/SubscriptionRoutes');
+const moment = require('moment-timezone');
 const db = require('./config/db');
 dotenv.config();
 
@@ -29,10 +30,10 @@ app.use('/api/v1/subscription', subscriptionRoutes);
 
 cron.schedule("* * * * *", () => {
     console.log('⏱️ Running cron job to update remaining time');
-
+    const currentTimeInColombo = moment.tz("Asia/Colombo").format("YYYY-MM-DD HH:mm:ss");
     const sql = `
     UPDATE subscriptions 
-    SET remaining_minutes = remaining_minutes-1
+    SET remaining_minutes = TIMESTAMPDIFF(MINUTE, ?, end_date)
     WHERE remaining_minutes>0`;
 
     const expireSubscriptionsSQL = `
@@ -45,7 +46,7 @@ cron.schedule("* * * * *", () => {
   `;
 
 
-    db.query(sql, [], (err, result) => {
+    db.query(sql, [currentTimeInColombo], (err, result) => {
 
     })
     

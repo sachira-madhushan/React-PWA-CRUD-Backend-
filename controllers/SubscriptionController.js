@@ -16,7 +16,6 @@ const createSubscription = (req, res) => {
 
         const now = moment.tz("Asia/Colombo");
 
-
         const diffInMinutes = endDate.diff(now, 'minutes');
         const formattedStart = startDate.format('YYYY-MM-DD HH:mm:ss');
         const formattedEnd = endDate.format('YYYY-MM-DD HH:mm:ss');
