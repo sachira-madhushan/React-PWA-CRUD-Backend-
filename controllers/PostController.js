@@ -1,6 +1,7 @@
 const db = require('../config/db');
 const jwt = require('jsonwebtoken');
 const bcrypt = require('bcryptjs');
+const moment = require('moment-timezone');
 const createPost = (req, res) => {
     const { title, body } = req.body;
 
@@ -18,7 +19,7 @@ const getAllPosts = (req, res) => {
                 res.status(500).json({ error: err.message });
             } else {
     
-                res.json(results);
+                res.json({posts:results,last_sync:moment.tz("Asia/Colombo").format("YYYY-MM-DD HH:mm:ss")});
             }
         })
         
@@ -58,7 +59,7 @@ const syncPosts = (req, res) => {
         if (index >= postsToSync.length) {
             db.query("SELECT * FROM posts WHERE user_id = ?", [req.user.id], (err, results) => {
                 if (err) return res.status(500).json({ error: err.message });
-                res.status(200).send({ message: 'Sync complete', posts: results });
+                res.status(200).send({ message: 'Sync complete', posts: results,last_sync:moment.tz("Asia/Colombo").format("YYYY-MM-DD HH:mm:ss") });
             });
             return;
         }
