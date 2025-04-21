@@ -13,8 +13,8 @@ const createPost = (req, res) => {
 const getAllPosts = (req, res) => {
     db.query("SELECT * FROM posts WHERE user_id = ?", [req.user.id], (err, results) => {
         if (err) return res.status(500).json({ error: err.message });
-        db.query("SELECT status FROM users WHERE user_id=?",[userId],(err,result2)=>{
-            if (result2[0].status == 0) {
+        db.query("SELECT status FROM users WHERE id=?",[req.user.id],(err,result2)=>{
+            if (result2.status == 0) {
                 res.status(500).json({ error: err.message });
             } else {
     
