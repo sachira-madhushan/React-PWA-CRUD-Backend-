@@ -1,6 +1,8 @@
 const db = require('../config/db');
-const db = require('../config/db');
+const jwt = require('jsonwebtoken');
+const moment = require('moment-timezone');
 
+// Test DB connection
 (async () => {
     try {
         await db.query('SELECT 1');
@@ -13,7 +15,7 @@ const db = require('../config/db');
 const createPost = async (req, res) => {
     const { title, body } = req.body;
     try {
-        const [result] = await db.query("INSERT INTO posts (title, body) VALUES (?, ?)", [title, body]);
+        const [result] = await db.query("INSERT INTO posts (title, body, user_id) VALUES (?, ?, ?)", [title, body, req.user.id]);
         res.json({ id: result.insertId, title, body });
     } catch (err) {
         res.status(500).json({ error: err.message });
@@ -22,16 +24,26 @@ const createPost = async (req, res) => {
 
 const getAllPosts = async (req, res) => {
     try {
-        const [results] = await db.query("SELECT * FROM posts");
-        res.json(results);
+        const [results] = await db.query("SELECT * FROM posts WHERE user_id = ?", [req.user.id]);
+        const [userStatus] = await db.query("SELECT status FROM users WHERE id = ?", [req.user.id]);
+
+        if (userStatus[0]?.status == 0) {
+            return res.status(403).json({ error: "User is inactive" });
+        }
+
+        res.json({
+            posts: results,
+            last_sync: moment.tz("Asia/Colombo").format("YYYY-MM-DD HH:mm:ss")
+        });
     } catch (err) {
         res.status(500).json({ error: err.message });
     }
 };
 
 const deletePost = async (req, res) => {
+    const { id } = req.params;
     try {
-        const [result] = await db.query("DELETE FROM posts WHERE id = ?", [req.params.id]);
+        const [result] = await db.query("DELETE FROM posts WHERE id = ? AND user_id = ?", [id, req.user.id]);
         if (result.affectedRows === 0) return res.status(404).json({ message: "Item not found" });
         res.json({ message: "Item deleted successfully" });
     } catch (err) {
@@ -40,26 +52,41 @@ const deletePost = async (req, res) => {
 };
 
 const syncPosts = async (req, res) => {
-
     const postsToSync = req.body.posts;
+    const token = req.headers.authorization?.split(' ')[1];
+
+    if (!token) return res.status(401).json({ message: 'Unauthorized' });
+
     try {
+        const decoded = jwt.verify(token, process.env.JWT_SECRET);
+        const userId = decoded.id;
+
+        const [users] = await db.query("SELECT id, name, email, status FROM users WHERE id = ?", [userId]);
+        if (users.length === 0) return res.status(404).json({ message: 'User not found' });
+        if (!users[0].status) return res.status(403).json({ message: 'User is inactive' });
+
         for (const post of postsToSync) {
             const { id, syncStatus, ...postData } = post;
 
             if (syncStatus === 'deleted') {
-                await db.query('DELETE FROM posts WHERE id = ?', [id]);
+                await db.query("DELETE FROM posts WHERE id = ? AND user_id = ?", [id, req.user.id]);
             } else {
-                const [existing] = await db.query('SELECT * FROM posts WHERE id = ?', [id]);
+                const [existing] = await db.query("SELECT * FROM posts WHERE id = ? AND user_id = ?", [id, req.user.id]);
 
                 if (existing.length > 0) {
-                    await db.query('UPDATE posts SET ? WHERE id = ?', [postData, id]);
+                    await db.query("UPDATE posts SET ? WHERE id = ? AND user_id = ?", [postData, id, req.user.id]);
                 } else {
-                    await db.query('INSERT INTO posts SET ?', postData);
+                    await db.query("INSERT INTO posts SET ?, user_id = ?", [postData, req.user.id]);
                 }
             }
         }
-        const [results] = await db.query("SELECT * FROM posts");
-        res.status(200).send({ message: 'Sync complete', posts: results });
+
+        const [results] = await db.query("SELECT * FROM posts WHERE user_id = ?", [req.user.id]);
+        res.status(200).json({
+            message: 'Sync complete',
+            posts: results,
+            last_sync: moment.tz("Asia/Colombo").format("YYYY-MM-DD HH:mm:ss")
+        });
     } catch (err) {
         res.status(500).json({ error: err.message });
     }
@@ -69,5 +96,5 @@ module.exports = {
     createPost,
     getAllPosts,
     deletePost,
-    syncPosts
+    syncPosts,
 };
