@@ -19,11 +19,6 @@ app.use(cors({
   credentials: true,
 }));
 
-app.options('*', cors({
-  origin: allowedOrigin,
-  credentials: true,
-}));
-
 const port = 4000;
 
 app.use(bodyParser.json({ limit: "50mb" }));
