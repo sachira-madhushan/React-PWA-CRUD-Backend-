@@ -12,13 +12,13 @@ const db = require('./config/db');
 dotenv.config();
 
 const app = express();
-const allowedOrigin = 'https://pwa-crud-new-auth.netlify.app';
-
 app.use(cors({
-  origin: allowedOrigin,
+  origin: 'https://pwa-crud-new-auth.netlify.app',
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
   credentials: true,
 }));
 
+// app.options('/api/*', cors());
 const port = 4000;
 
 app.use(bodyParser.json({ limit: "50mb" }));
