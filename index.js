@@ -12,8 +12,17 @@ const db = require('./config/db');
 dotenv.config();
 
 const app = express();
-app.use(cors());
-app.options('*', cors());
+const allowedOrigin = 'https://pwa-crud-new-auth.netlify.app';
+
+app.use(cors({
+  origin: allowedOrigin,
+  credentials: true,
+}));
+
+app.options('*', cors({
+  origin: allowedOrigin,
+  credentials: true,
+}));
 
 const port = 4000;
 
