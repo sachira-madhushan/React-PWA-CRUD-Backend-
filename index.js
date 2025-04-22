@@ -19,7 +19,7 @@ app.use(cors({
   credentials: true,
 }));
 
-app.options('/api/*', cors());
+// app.options('/api/*', cors());
 
 const port = 4000;
 
