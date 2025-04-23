@@ -13,17 +13,11 @@ dotenv.config();
 const app = express();
 
 const corsOptions = {
-  origin: function (origin, callback) {
-    const allowedOrigins = [
-      'http://localhost:3030',      // for local dev
-      'https://pwa-crud-new-auth.netlify.app',  // for your deployed front-end
-    ];
-    if (!origin || allowedOrigins.includes(origin)) {
-      callback(null, true);
-    } else {
-      callback(new Error('Not allowed by CORS'));
-    }
-  },
+  allowedOrigins : [
+    'http://localhost:3030',
+    'https://pwa-crud-new-auth.netlify.app',
+  ],
+  allowedHeaders: ['*'],
   credentials: true,
 };
 
