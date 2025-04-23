@@ -54,8 +54,8 @@ const getAllSubscriptions = (req, res) => {
 
         const formatted = results.map(item => ({
             ...item,
-            start_date: moment(item.start_date).tz("Asia/Colombo").format("YYYY-MM-DD HH:mm:ss"),
-            end_date: moment(item.end_date).tz("Asia/Colombo").format("YYYY-MM-DD HH:mm:ss")
+            start_date: moment(item.start_date).format("YYYY-MM-DD HH:mm:ss"),
+            end_date: moment(item.end_date).format("YYYY-MM-DD HH:mm:ss")
         }));
 
         res.json(formatted);

@@ -34,7 +34,7 @@ const login = async (req, res) => {
             return res.json({
                 user: userWithoutPassword,
                 token,
-                expire_date: moment(subscriptions[0].end_date).tz("Asia/Colombo").format("YYYY-MM-DD HH:mm:ss"),
+                expire_date: moment(subscriptions[0].end_date).format("YYYY-MM-DD HH:mm:ss"),
                 last_sync: moment.tz("Asia/Colombo").format("YYYY-MM-DD HH:mm:ss")
             });
         } else {
