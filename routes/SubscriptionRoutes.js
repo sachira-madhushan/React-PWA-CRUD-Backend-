@@ -1,6 +1,6 @@
 const express = require('express');
 const router = express.Router();
-const {createSubscription, getAllSubscriptions, getAllPackages} = require('../controllers/SubscriptionController');
+const {createSubscription, getAllSubscriptions, getAllPackages} = require('../controllers/SubscriptionControllerHost');
 
 router.post('/',createSubscription);
 

@@ -5,33 +5,31 @@ const moment = require('moment-timezone')
 const login = (req, res) => {
     const { email, password } = req.body;
 
-    res.json("Hello this is the response");
+    db.query('SELECT * FROM users WHERE email = ?', [email], (err, results) => {
+        if (err) return res.status(500).json({ error: err.message });
+        if (results.length === 0) return res.status(401).json({ message: 'Invalid credentials' });
 
-    // db.query('SELECT * FROM users WHERE email = ?', [email], (err, results) => {
-    //     if (err) return res.status(500).json({ error: err.message });
-    //     if (results.length === 0) return res.status(401).json({ message: 'Invalid credentials' });
+        const user = results[0];
 
-    //     const user = results[0];
+        const userWithoutPassword = { ...user };
+        delete userWithoutPassword.password;
 
-    //     const userWithoutPassword = { ...user };
-    //     delete userWithoutPassword.password;
+        bcrypt.compare(password, user.password, (err, isMatch) => {
+            if (err) return res.status(500).json({ error: err.message });
+            if (!isMatch) return res.status(401).json({ message: 'Invalid credentials' });
+            const token = jwt.sign({ id: user.id }, process.env.JWT_SECRET);
+            db.query("SELECT * FROM subscriptions WHERE user_id =? AND status=1", [user.id], (err, results2) => {
 
-    //     bcrypt.compare(password, user.password, (err, isMatch) => {
-    //         if (err) return res.status(500).json({ error: err.message });
-    //         if (!isMatch) return res.status(401).json({ message: 'Invalid credentials' });
-    //         const token = jwt.sign({ id: user.id }, process.env.JWT_SECRET);
-    //         db.query("SELECT * FROM subscriptions WHERE user_id =? AND status=1", [user.id], (err, results2) => {
-
-    //             if (results2.length > 0) {
-    //                 res.json({ user: userWithoutPassword, token: token, expire_date: moment(results2[0].end_date).tz("Asia/Colombo").format("YYYY-MM-DD HH:mm:ss"), last_sync: moment.tz("Asia/Colombo").format("YYYY-MM-DD HH:mm:ss") });
-    //             } else {
-    //                 res.json({ user: userWithoutPassword });
-    //             }
-    //         })
+                if (results2.length > 0) {
+                    res.json({ user: userWithoutPassword, token: token, expire_date: moment(results2[0].end_date).tz("Asia/Colombo").format("YYYY-MM-DD HH:mm:ss"), last_sync: moment.tz("Asia/Colombo").format("YYYY-MM-DD HH:mm:ss") });
+                } else {
+                    res.json({ user: userWithoutPassword });
+                }
+            })
 
 
-    //     });
-    // });
+        });
+    });
 };
 
 const register = (req, res) => {
