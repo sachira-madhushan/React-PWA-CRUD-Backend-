@@ -10,16 +10,25 @@ const subscriptionRoutes = require('./routes/SubscriptionRoutes');
 const moment = require('moment-timezone');
 const db = require('./config/db');
 dotenv.config();
-
 const app = express();
-app.use(cors({
-  origin:['http://localhost:3030','https://pwa-crud-new-auth.netlify.app'],
-  // methods: ['GET', 'POST', 'PUT', 'DELETE'],
-  // allowedHeaders: ['Content-Type', 'Authorization'],
-  credentials: true,
-}));
 
-// app.options('/api/*', cors());
+const corsOptions = {
+  origin: function (origin, callback) {
+    const allowedOrigins = [
+      'http://localhost:3030',      // for local dev
+      'https://pwa-crud-new-auth.netlify.app',  // for your deployed front-end
+    ];
+    if (!origin || allowedOrigins.includes(origin)) {
+      callback(null, true);
+    } else {
+      callback(new Error('Not allowed by CORS'));
+    }
+  },
+  credentials: true,
+};
+
+app.use(cors(corsOptions));
+app.options('/{*any}', cors(corsOptions));
 
 const port = 4000;
 
