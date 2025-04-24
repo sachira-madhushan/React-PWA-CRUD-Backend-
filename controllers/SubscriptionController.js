@@ -4,7 +4,7 @@ const moment = require('moment-timezone');
 const createSubscription = (req, res) => {
     const { userId, packageId } = req.body;
 
-    if (packageId == 4) {
+    if (packageId === 4) {
         db.query("SELECT * FROM packages WHERE id = ?", [packageId], (err, results) => {
 
             const startDate = moment.tz("Asia/Colombo");
