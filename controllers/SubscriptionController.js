@@ -4,65 +4,33 @@ const moment = require('moment-timezone');
 const createSubscription = (req, res) => {
     const { userId, packageId } = req.body;
 
-    if (Number(packageId) === 4) {
-        db.query("SELECT * FROM packages WHERE id = ?", [packageId], (err, results) => {
+    db.query("SELECT * FROM packages WHERE id = ?", [packageId], (err, results) => {
 
-            const startDate = moment.tz("Asia/Colombo");
-
-
-            const endDate = startDate.clone().add(results[0].days, 'minutes');
+        const startDate = moment.tz("Asia/Colombo");
 
 
-            const now = moment.tz("Asia/Colombo");
-
-            const diffInMinutes = endDate.diff(now, 'minutes');
-            const formattedStart = startDate.format('YYYY-MM-DD HH:mm:ss');
-            const formattedEnd = endDate.format('YYYY-MM-DD HH:mm:ss');
-
-            db.query("UPDATE subscriptions SET status= 0,remaining_minutes=0 WHERE user_id =? AND status=1", [userId], (err, result1) => {
-
-                db.query("INSERT INTO subscriptions (user_id, package_id, start_date, end_date,remaining_minutes) VALUES (?, ?, ?,?,?)", [userId, packageId, formattedStart, formattedEnd, diffInMinutes], (err, result) => {
-                    if (err) return res.status(500).json({ error: err.message });
-                    db.query("UPDATE users SET status=1 WHERE id=?", [userId], (err, result) => {
-                        res.json({ "message": "Package activated" });
-                    })
-
-                });
-            })
+        const endDate = startDate.clone().add(results[0].days, 'minutes');
 
 
-        });
-    } else {
-        db.query("SELECT * FROM packages WHERE id = ?", [packageId], (err, results) => {
+        const now = moment.tz("Asia/Colombo");
 
-            const startDate = moment.tz("Asia/Colombo");
+        const diffInMinutes = endDate.diff(now, 'minutes');
+        const formattedStart = startDate.format('YYYY-MM-DD HH:mm:ss');
+        const formattedEnd = endDate.format('YYYY-MM-DD HH:mm:ss');
 
+        db.query("UPDATE subscriptions SET status= 0,remaining_minutes=0 WHERE user_id =? AND status=1",[userId],(err,result1)=>{
+           
+            db.query("INSERT INTO subscriptions (user_id, package_id, start_date, end_date,remaining_minutes) VALUES (?, ?, ?,?,?)", [userId, packageId, formattedStart, formattedEnd, diffInMinutes], (err, result) => {
+                if (err) return res.status(500).json({ error: err.message });
+                db.query("UPDATE users SET status=1 WHERE id=?",[userId],(err,result)=>{
+                    res.json({ "message": "Package activated" });
+                })
+                
+            });
+        })
 
-            const endDate = startDate.clone().add(results[0].days, 'day');
-
-
-            const now = moment.tz("Asia/Colombo");
-
-            const diffInMinutes = endDate.diff(now, 'minutes');
-            const formattedStart = startDate.format('YYYY-MM-DD HH:mm:ss');
-            const formattedEnd = endDate.format('YYYY-MM-DD HH:mm:ss');
-
-            db.query("UPDATE subscriptions SET status= 0,remaining_minutes=0 WHERE user_id =? AND status=1", [userId], (err, result1) => {
-
-                db.query("INSERT INTO subscriptions (user_id, package_id, start_date, end_date,remaining_minutes) VALUES (?, ?, ?,?,?)", [userId, packageId, formattedStart, formattedEnd, diffInMinutes], (err, result) => {
-                    if (err) return res.status(500).json({ error: err.message });
-                    db.query("UPDATE users SET status=1 WHERE id=?", [userId], (err, result) => {
-                        res.json({ "message": "Package activated" });
-                    })
-
-                });
-            })
-
-
-        });
-    }
-
-
+        
+    });
 
 
 };
@@ -94,7 +62,7 @@ const getAllSubscriptions = (req, res) => {
 
 }
 
-const getAllPackages = (req, res) => {
+const getAllPackages=(req,res)=>{
     db.query("SELECT * FROM packages", (err, results) => {
         if (err) return res.status(500).json({ error: err.message });
         res.json(results);
