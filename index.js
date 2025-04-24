@@ -14,6 +14,7 @@ const app = express();
 
 const corsOptions = {
   allowedOrigins : [
+    'http://localhost:4173',
     'http://localhost:3030',
     'https://pwa-crud-new-auth.netlify.app',
   ],
