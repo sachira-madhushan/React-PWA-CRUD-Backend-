@@ -21,7 +21,7 @@ const login = (req, res) => {
             db.query("SELECT * FROM subscriptions WHERE user_id =? AND status=1", [user.id], (err, results2) => {
 
                 if (results2.length > 0) {
-                    res.json({ user: userWithoutPassword, token: token, expire_date: moment(results2[0].end_date).format("YYYY-MM-DD HH:mm:ss"), last_sync: moment.tz("Asia/Colombo").format("YYYY-MM-DD HH:mm:ss") });
+                    res.json({ user: userWithoutPassword, token: token,package_type:results2[0].package_type, expire_date: moment(results2[0].end_date).format("YYYY-MM-DD HH:mm:ss"), last_sync: moment.tz("Asia/Colombo").format("YYYY-MM-DD HH:mm:ss") });
                 } else {
                     res.json({ user: userWithoutPassword });
                 }
