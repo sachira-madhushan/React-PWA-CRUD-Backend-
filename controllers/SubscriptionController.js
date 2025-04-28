@@ -2,7 +2,7 @@ const db = require('../config/db');
 const moment = require('moment-timezone');
 
 const createSubscription = (req, res) => {
-    const { userId, packageId } = req.body;
+    const { userId, packageId,accountType } = req.body;
 
     db.query("SELECT * FROM packages WHERE id = ?", [packageId], (err, results) => {
 
@@ -20,7 +20,7 @@ const createSubscription = (req, res) => {
 
         db.query("UPDATE subscriptions SET status= 0,remaining_minutes=0 WHERE user_id =? AND status=1",[userId],(err,result1)=>{
            
-            db.query("INSERT INTO subscriptions (user_id, package_id, start_date, end_date,remaining_minutes) VALUES (?, ?, ?,?,?)", [userId, packageId, formattedStart, formattedEnd, diffInMinutes], (err, result) => {
+            db.query("INSERT INTO subscriptions (user_id, package_id, start_date, end_date,remaining_minutes,package_type) VALUES (?, ?, ?,?,?)", [userId, packageId, formattedStart, formattedEnd, diffInMinutes,accountType], (err, result) => {
                 if (err) return res.status(500).json({ error: err.message });
                 db.query("UPDATE users SET status=1 WHERE id=?",[userId],(err,result)=>{
                     res.json({ "message": "Package activated" });
