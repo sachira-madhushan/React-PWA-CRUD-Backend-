@@ -2,7 +2,7 @@ const db = require('../config/db');
 const moment = require('moment-timezone');
 
 const createSubscription = async (req, res) => {
-    const { userId, packageId } = req.body;
+    const { userId, packageId,accountType } = req.body;
 
     try {
         // Fetch the package data
@@ -19,7 +19,7 @@ const createSubscription = async (req, res) => {
         await db.query("UPDATE subscriptions SET status = 0, remaining_minutes = 0 WHERE user_id = ? AND status = 1", [userId]);
 
         // Insert new subscription
-        await db.query("INSERT INTO subscriptions (user_id, package_id, start_date, end_date, remaining_minutes) VALUES (?, ?, ?, ?, ?)", [userId, packageId, formattedStart, formattedEnd, diffInMinutes]);
+        await db.query("INSERT INTO subscriptions (user_id, package_id, start_date, end_date, remaining_minutes,package_type) VALUES (?, ?, ?, ?, ?,?)", [userId, packageId, formattedStart, formattedEnd, diffInMinutes,accountType]);
 
         // Update user status to active
         await db.query("UPDATE users SET status = 1 WHERE id = ?", [userId]);
