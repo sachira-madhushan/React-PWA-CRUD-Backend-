@@ -66,7 +66,7 @@ const syncPosts = async (req, res) => {
         if (!users[0].status) return res.status(403).json({ message: 'User is inactive' });
 
         for (const post of postsToSync) {
-            const { id, syncStatus, ...postData } = post;
+            const { id, syncStatus,created_at,updated_at, ...postData } = post;
 
             if (syncStatus === 'deleted') {
                 await db.query("DELETE FROM posts WHERE id = ? AND user_id = ?", [id, req.user.id]);

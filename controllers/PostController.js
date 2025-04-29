@@ -65,7 +65,7 @@ const syncPosts = (req, res) => {
         }
 
         const post = postsToSync[index];
-        const { id, syncStatus, ...postData } = post;
+        const { id, syncStatus,created_at,updated_at, ...postData } = post;
 
         if (syncStatus === 'deleted') {
             db.query("DELETE FROM posts WHERE id = ? AND user_id = ?", [id, req.user.id], (err) => {
