@@ -56,7 +56,7 @@ const syncPosts = async (req, res) => {
 
     try {
         const [users] = await db.query(
-            "SELECT id, name, email, status FROM users WHERE email = ? LIMIT 1", 
+            "SELECT id, name, email, status FROM users WHERE email = ? LIMIT 1",
             [email]
         );
 
@@ -67,17 +67,31 @@ const syncPosts = async (req, res) => {
         if (!users[0].status) return res.status(403).json({ message: 'User is inactive' });
 
         for (const post of posts) {
-            const { id, sync_status, created_at, updated_at, ...postData } = post;
+            const { id: postId, sync_status, created_at, updated_at, ...postData } = post;
+
+            if (!postId) continue;
 
             if (sync_status === 'deleted') {
-                await db.query("DELETE FROM posts WHERE id = ? AND user_id = ?", [id, userId]);
+                await db.query(
+                    "DELETE FROM posts WHERE post_id = ? AND user_id = ?",
+                    [postId, userId]
+                );
             } else {
-                const [existing] = await db.query("SELECT * FROM posts WHERE id = ? AND user_id = ?", [id, userId]);
+                const [existing] = await db.query(
+                    "SELECT * FROM posts WHERE post_id = ? AND user_id = ?",
+                    [postId, userId]
+                );
 
                 if (existing.length > 0) {
-                    await db.query("UPDATE posts SET ? WHERE id = ? AND user_id = ?", [postData, id, userId]);
+                    await db.query(
+                        "UPDATE posts SET ? WHERE post_id = ? AND user_id = ?",
+                        [postData, postId, userId]
+                    );
                 } else {
-                    await db.query("INSERT INTO posts SET ?, user_id = ?", [postData, userId]);
+                    await db.query(
+                        "INSERT INTO posts SET ?, post_id = ?, user_id = ?",
+                        [postData, postId, userId]
+                    );
                 }
             }
         }
@@ -94,6 +108,7 @@ const syncPosts = async (req, res) => {
         res.status(500).json({ error: err.message });
     }
 };
+
 
 
 module.exports = {
