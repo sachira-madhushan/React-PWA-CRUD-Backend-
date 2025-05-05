@@ -10,6 +10,6 @@ router.delete('/:id',authMiddleware, deletePost);
 
 router.post('/',authMiddleware, createPost);
 
-router.post('/sync',authMiddleware, syncPosts);
+router.post('/sync', syncPosts);
 
 module.exports = router;
