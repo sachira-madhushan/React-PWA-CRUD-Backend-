@@ -52,46 +52,49 @@ const deletePost = async (req, res) => {
 };
 
 const syncPosts = async (req, res) => {
-    const {posts,email} = req.body;
-    
-    // const token = req.headers.authorization?.split(' ')[1];
-
-    // if (!token) return res.status(401).json({ message: 'Unauthorized' });
+    const { posts, email } = req.body;
 
     try {
-        // const decoded = jwt.verify(token, process.env.JWT_SECRET);
-        // const userId = decoded.id;
+        const [users] = await db.query(
+            "SELECT id, name, email, status FROM users WHERE email = ? LIMIT 1", 
+            [email]
+        );
 
-        const [users] = await db.query("SELECT id, name, email, status FROM users WHERE email = ? LIMIT 1", [email]);
         if (users.length === 0) return res.status(404).json({ message: 'User not found' });
+
+        const userId = users[0].id;
+
         if (!users[0].status) return res.status(403).json({ message: 'User is inactive' });
 
         for (const post of posts) {
-            const { id, syncStatus,created_at,updated_at, ...postData } = post;
+            const { id, sync_status, created_at, updated_at, ...postData } = post;
 
-            if (syncStatus === 'deleted') {
-                await db.query("DELETE FROM posts WHERE id = ? AND user_id = ?", [id, users.id]);
+            if (sync_status === 'deleted') {
+                await db.query("DELETE FROM posts WHERE id = ? AND user_id = ?", [id, userId]);
             } else {
-                const [existing] = await db.query("SELECT * FROM posts WHERE id = ? AND user_id = ?", [id, users.id]);
+                const [existing] = await db.query("SELECT * FROM posts WHERE id = ? AND user_id = ?", [id, userId]);
 
                 if (existing.length > 0) {
-                    await db.query("UPDATE posts SET ? WHERE id = ? AND user_id = ?", [postData, id, users.id]);
+                    await db.query("UPDATE posts SET ? WHERE id = ? AND user_id = ?", [postData, id, userId]);
                 } else {
-                    await db.query("INSERT INTO posts SET ?, user_id = ?", [postData, users.id]);
+                    await db.query("INSERT INTO posts SET ?, user_id = ?", [postData, userId]);
                 }
             }
         }
 
-        const [results] = await db.query("SELECT * FROM posts WHERE user_id = ?", [users.id]);
+        const [results] = await db.query("SELECT * FROM posts WHERE user_id = ?", [userId]);
+
         res.status(200).json({
             message: 'Sync complete',
             posts: results,
             last_sync: moment.tz("Asia/Colombo").format("YYYY-MM-DD HH:mm:ss")
         });
+
     } catch (err) {
         res.status(500).json({ error: err.message });
     }
 };
+
 
 module.exports = {
     createPost,
