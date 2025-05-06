@@ -69,8 +69,6 @@ const syncPosts = async (req, res) => {
         for (const post of posts) {
             const { id, sync_status, ...postData } = post;
 
-            if (!postId) continue;
-
             if (sync_status === 'deleted') {
                 await db.query(
                     "DELETE FROM posts WHERE id = ? AND user_id = ?",
