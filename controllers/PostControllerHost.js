@@ -82,12 +82,12 @@ const syncPosts = async (req, res) => {
 
                 if (existing.length > 0) {
                     await db.query(
-                        "UPDATE posts SET ? WHERE post_id = ? AND user_id = ?",
+                        "UPDATE posts SET ? WHERE id = ? AND user_id = ?",
                         [postData, id, userId]
                     );
                 } else {
                     await db.query(
-                        "INSERT INTO posts SET ?, post_id = ?, user_id = ?",
+                        "INSERT INTO posts SET ?, id = ?, user_id = ?",
                         [postData, id, userId]
                     );
                 }
