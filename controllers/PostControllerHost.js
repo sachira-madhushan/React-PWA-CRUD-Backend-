@@ -67,30 +67,30 @@ const syncPosts = async (req, res) => {
         if (!users[0].status) return res.status(403).json({ message: 'User is inactive' });
 
         for (const post of posts) {
-            const { id: postId, sync_status, created_at, updated_at, ...postData } = post;
+            const { id, sync_status, ...postData } = post;
 
             if (!postId) continue;
 
             if (sync_status === 'deleted') {
                 await db.query(
-                    "DELETE FROM posts WHERE post_id = ? AND user_id = ?",
-                    [postId, userId]
+                    "DELETE FROM posts WHERE id = ? AND user_id = ?",
+                    [id, userId]
                 );
             } else {
                 const [existing] = await db.query(
-                    "SELECT * FROM posts WHERE post_id = ? AND user_id = ?",
-                    [postId, userId]
+                    "SELECT * FROM posts WHERE id = ? AND user_id = ?",
+                    [id, userId]
                 );
 
                 if (existing.length > 0) {
                     await db.query(
                         "UPDATE posts SET ? WHERE post_id = ? AND user_id = ?",
-                        [postData, postId, userId]
+                        [postData, id, userId]
                     );
                 } else {
                     await db.query(
                         "INSERT INTO posts SET ?, post_id = ?, user_id = ?",
-                        [postData, postId, userId]
+                        [postData, id, userId]
                     );
                 }
             }
